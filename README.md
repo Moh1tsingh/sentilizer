@@ -14,8 +14,8 @@ Sentilizer is a SaaS platform that allows users to perform sentiment analysis on
 ### Prerequisites
 
 - Node.js (v14 or higher)
-- npm or yarn
-- PostgreSQL (or any other supported database)
+- npm 
+- PostgreSQL 
 
 ### Installation
 
