@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
+import { getUser } from "@/app/actions";
+import { prisma } from "@/app/utils/db";
 
 export async function GET(req: NextRequest) {
+  const user = await getUser()
+  if(user?.credits === 0) return NextResponse.json({ message: "Not enough credits" }, { status: 500 });
   const link = req.nextUrl.searchParams.get("url");
   if (!link) return NextResponse.json({ message: "Invalid Request" });
   try {
@@ -137,7 +140,14 @@ export async function GET(req: NextRequest) {
     const summary =
       finalResponse4.candidates?.[0]?.content?.parts?.[0]?.text ||
       "No most asked questions found";
-
+    await prisma.user.update({
+      where:{
+        id:user?.id
+      },
+      data:{
+        credits:user?.credits!-1
+      }
+    })
     return NextResponse.json({
       positiveComments,
       negativeComments,

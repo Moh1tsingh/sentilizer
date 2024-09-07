@@ -15,6 +15,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  credits       Int @default(2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
