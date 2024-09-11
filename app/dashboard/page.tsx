@@ -2,11 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { isBefore, subDays } from "date-fns";
-import { Loader, Loader2, User } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { Line } from "react-chartjs-2";
 const page = () => {
+  const MAX_CREDIT_LIMIT = 2;
   const { status } = useSession();
   const [comments, setComments] = useState({
     positiveComments: [],
@@ -56,6 +58,7 @@ const page = () => {
     setInputLink("");
   };
   let userData;
+  let data;
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -69,7 +72,10 @@ const page = () => {
           const lastUpdated = new Date(userData.updatedAt);
           const yesterday = subDays(new Date(), 1);
 
-          if (userData.credits < 2 && isBefore(lastUpdated, yesterday)) {
+          if (
+            userData.credits < MAX_CREDIT_LIMIT &&
+            isBefore(lastUpdated, yesterday)
+          ) {
             const updateRes = await fetch("/api/updateUserCredits");
 
             if (updateRes.ok) {
@@ -84,13 +90,37 @@ const page = () => {
           } else {
             setUser(userData);
           }
+          data = {
+            labels: ["Positive", "Negative"],
+            datasets: [
+              {
+                label: "Comments",
+                data: [
+                  (
+                    (comments.positiveComments.length /
+                      (comments.positiveComments.length +
+                        comments.negativeComments.length)) *
+                    100
+                  ).toFixed(2),
+                  (
+                    (comments.negativeComments.length /
+                      (comments.positiveComments.length +
+                        comments.negativeComments.length)) *
+                    100
+                  ).toFixed(2),
+                ],
+                borderColor: "rgba(255, 99, 132, 1)",
+                backgroundColor: "rgba(255, 99, 132, 0.2)",
+              },
+            ],
+          };
         }
       } catch (error) {
         console.error("Error fetching user:", error);
       }
     };
     fetchUser();
-  }, [router]);
+  }, [router, comments.summary]);
 
   return (
     <div className=" w-full min-h-screen bg-neutral-900 text-white flex  justify-center items-center">
@@ -107,7 +137,7 @@ const page = () => {
             <Button
               onClick={handleSubmit}
               type="submit"
-              className="w-full bg-purple-700 hover:bg-purple-800 text-white"
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
             >
               Generate
             </Button>
@@ -115,7 +145,7 @@ const page = () => {
             <Button
               disabled={true}
               type="submit"
-              className="w-full bg-purple-700 hover:bg-purple-800 text-white"
+              className="w-full bg-green-600 text-white"
             >
               Generating <Loader2 className="ml-2 animate-spin size-5" />
             </Button>
@@ -135,56 +165,96 @@ const page = () => {
         {comments && (
           <div className=" flex  gap-x-4 p-2 ">
             {comments.positiveComments.length > 1 && (
-              <div className=" w-[300px] p-2 rounded my-2 bg-green-700/70">
-                <h1>Positive Comments</h1>
+              <div className=" w-[300px] p-2 rounded my-2 bg-green-700/70 flex flex-col gap-y-1">
+                <h1 className=" font-semibold">Positive Comments</h1>
                 {Array.isArray(comments.positiveComments) &&
                   comments.positiveComments.length > 0 &&
                   comments.positiveComments.map((comment: string, i) => {
                     return (
-                      <div>
-                        {i + 1} {comment.replace("&#39;", "'").replace("<br/>","")}
-                      </div>
+                      <span>
+                        {i + 1}
+                        {". "}
+                        {comment
+                          .replaceAll("&#39;", "'")
+                          .replaceAll("<br/>", "")}
+                      </span>
                     );
                   })}
               </div>
             )}
             {comments.negativeComments.length > 1 && (
-              <div className="w-[300px] p-2 rounded my-2 bg-red-800/70">
-                <h1>Negative Comments</h1>
+              <div className="w-[300px] p-2 rounded my-2 bg-red-800/70 flex flex-col gap-y-1">
+                <h1 className=" font-semibold">Negative Comments</h1>
                 {Array.isArray(comments.negativeComments) &&
                   comments.negativeComments.length > 1 &&
                   comments.negativeComments.map((comment: string, i) => {
                     return (
-                      <div>
-                        {i + 1} {comment.replace("&#39;", "'").replace("<br/>","")}
-                      </div>
+                      <span>
+                        {i + 1}
+                        {". "}
+                        {comment
+                          .replaceAll("&#39;", "'")
+                          .replaceAll("<br/>", "")}
+                      </span>
                     );
                   })}
               </div>
             )}
             {comments.mostAskedQuestion.length > 1 && (
-              <div className="w-[300px] p-2 rounded my-2 bg-orange-700/70">
-                <h1>Most Asked Question in Comments</h1>
+              <div className="w-[300px] p-2 rounded my-2 bg-orange-700/70 flex flex-col gap-y-1">
+                <h1 className=" font-semibold">
+                  Most Asked Question in Comments
+                </h1>
                 {Array.isArray(comments.mostAskedQuestion) &&
                   comments.mostAskedQuestion.length > 0 &&
                   comments.mostAskedQuestion.map((comment: string, i) => {
                     return (
-                      <div>
-                        {i + 1} {comment.replace("&#39;", "'").replace("<br/>","")}
-                      </div>
+                      <span>
+                        {i + 1}
+                        {". "}
+                        {comment
+                          .replaceAll("&#39;", "'")
+                          .replaceAll("<br/>", "")}
+                      </span>
                     );
                   })}
               </div>
             )}
             {comments.summary.length > 1 && (
-              <div className="w-[300px] p-2 rounded my-2 bg-neutral-700/70">
-                <h1>Summary with Sentiment Analysis </h1>
+              <span className="w-[300px] p-2 rounded my-2 bg-neutral-700/70 flex flex-col gap-y-1">
+                <h1 className=" font-semibold">
+                  Summary with Sentiment Analysis{" "}
+                </h1>
                 {comments.summary &&
-                  comments.summary.replace("**", "").replace("&#39;", "'")}
-              </div>
+                  comments.summary.replaceAll("*", "").replaceAll("&#39;", "'")}
+              </span>
             )}
           </div>
         )}
+        <div>
+          {(comments.negativeComments.length > 1 ||
+            comments.positiveComments.length > 1) && (
+            <div className="w-[300px] p-2 rounded my-2 bg-neutral-700/70 flex flex-col gap-y-1">
+              <h1 className=" font-semibold">Ratio of Positive - Negative</h1>
+              <h1 className=" font-semibold text-green-400">
+                {(
+                  (comments.positiveComments.length /
+                    (comments.positiveComments.length +
+                      comments.negativeComments.length)) *
+                  100
+                ).toFixed(2)}
+              </h1>
+              <h1 className=" font-semibold text-red-400">
+                {(
+                  (comments.negativeComments.length /
+                    (comments.positiveComments.length +
+                      comments.negativeComments.length)) *
+                  100
+                ).toFixed(2)}
+              </h1>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
