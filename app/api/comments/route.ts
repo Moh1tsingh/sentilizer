@@ -30,64 +30,19 @@ export async function GET(req: NextRequest) {
         (item: any) => item.snippet.topLevelComment.snippet.textDisplay
       ),
     ];
-
     //Gemini api call
 
-    let text1 =
-      "I am providing you some comments of a particular youtube video, I want you to give me all the positive comments from them, you can skip the ones which have too many emojis or some unreadable texts like codes. Give the result as ' | ' separated comments which i can put into res.split(' | ') and get the array of comments. Here are the comments (which are separated by ' | ') " +
+    let text0 =
+      "i am providing you comments of a youtube video you have to tell me how many are positive and how many are negative and neutral. Your response should only contain three numbers nothing other than that example - '[20,50,30]'. i will directly use 'res.split(',')' to get the tree values. (The comments are separated by ' | ') => " +
       comments.join(" | ");
 
-    const requestBody = {
+    const requestBody0 = {
       contents: [
         {
-          parts: [{ text: text1 }],
+          parts: [{ text: text0 }],
         },
       ],
     };
-
-    const response1 = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      }
-    );
-
-    const finalResponse = await response1.json();
-    const positiveComments =
-      finalResponse.candidates?.[0]?.content?.parts?.[0]?.text.split(" | ") ||
-      "No positive comments found";
-
-    let text2 =
-      "I am providing you some comments of a particular youtube video, I want you to give me all the negative or hate full comments from them, you can skip the ones which have too many emojis or some unreadable texts like codes. Give the result as ' | ' separated comments which i can put into res.split(' | ') and get the array of comments. Here are the comments (which are separated by ' | ') " +
-      comments.join(" | ");
-
-    const requestBody2 = {
-      contents: [
-        {
-          parts: [{ text: text2 }],
-        },
-      ],
-    };
-
-    const response2 = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody2),
-      }
-    );
-
-    const finalResponse2 = await response2.json();
-    const negativeComments =
-      finalResponse2.candidates?.[0]?.content?.parts?.[0]?.text.split(" | ") ||
-      "No negative comments found";
 
     let text3 =
       "I am providing you some comments of a particular youtube video, I want you to give me all the most asked questions from them, you can skip the ones which have too many emojis or some unreadable texts like codes.Remember the result you will give should only contain questions nothing other than that. Give the result as ' | ' separated comments which i can put into res.split(' | ') and get the array of comments. Here are the comments (which are separated by ' | ') " +
@@ -101,6 +56,29 @@ export async function GET(req: NextRequest) {
       ],
     };
 
+    let text4 =
+      "I am providing you some comments of a particular youtube video, I want you to make a summary (around 100-150 words) based on your sentiment analysis of those comments. Here are the comments (which are separated by ' | ') = " +
+      comments.join(" | ");
+
+    const requestBody4 = {
+      contents: [
+        {
+          parts: [{ text: text4 }],
+        },
+      ],
+    };
+
+    const response0 = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody0),
+      }
+    );
+
     const response3 = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
@@ -112,23 +90,6 @@ export async function GET(req: NextRequest) {
       }
     );
 
-    const finalResponse3 = await response3.json();
-    const mostAskedQuestion =
-      finalResponse3.candidates?.[0]?.content?.parts?.[0]?.text.split(" | ") ||
-      "No most asked questions found";
-
-    let text4 =
-      "I am providing you some comments of a particular youtube video, I want you to make a summary (around 100 words) based on your sentiment analysis of those comments and also suggest what i should do in my next video based on this summary.Give summary in noraml string format i am directly going to show this in my frontend. Here are the comments (which are separated by ' | ') " +
-      comments.join(" | ");
-
-    const requestBody4 = {
-      contents: [
-        {
-          parts: [{ text: text4 }],
-        },
-      ],
-    };
-
     const response4 = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
@@ -139,12 +100,24 @@ export async function GET(req: NextRequest) {
         body: JSON.stringify(requestBody4),
       }
     );
-
+    const finalResponse0 = await response0.json();
+    const finalResponse3 = await response3.json();
     const finalResponse4 = await response4.json();
-    const summary =
-      finalResponse4.candidates?.[0]?.content?.parts?.[0]?.text ||
+    const commentNumbers =
+      finalResponse0.candidates?.[0]?.content?.parts?.[0]?.text
+        .replace(/\[|\]/g, "")
+        .split(",")
+        .map(Number) || 0;
+    const mostAskedQuestion =
+      finalResponse3.candidates?.[0]?.content?.parts?.[0]?.text.split(" | ") ||
       "No most asked questions found";
-    if (positiveComments.length > 1 && negativeComments.length > 1) {
+    const summary = finalResponse4.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (
+      commentNumbers[0] > 1 ||
+      commentNumbers[1] > 1 ||
+      commentNumbers[2] > 1
+    ) {
       await prisma.user.update({
         where: {
           id: user?.id,
@@ -154,10 +127,8 @@ export async function GET(req: NextRequest) {
         },
       });
     }
-
     return NextResponse.json({
-      positiveComments,
-      negativeComments,
+      commentNumbers,
       mostAskedQuestion,
       summary,
     });

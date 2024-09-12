@@ -6,13 +6,12 @@ import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { Line } from "react-chartjs-2";
+import { Chart } from "../components/Chart";
 const page = () => {
   const MAX_CREDIT_LIMIT = 2;
   const { status } = useSession();
   const [comments, setComments] = useState({
-    positiveComments: [],
-    negativeComments: [],
+    commentNumbers: [],
     mostAskedQuestion: [],
     summary: "",
   });
@@ -47,26 +46,28 @@ const page = () => {
     }
     if (inputLink.length == 0) return;
     setLoading(true);
-    const res = await fetch(`/api/comments/?url=${inputLink}`);
-    const data = await res.json();
-    if (data.message === "Not enough credits") {
-      showModal();
+    try {
+      const res = await fetch(`/api/comments/?url=${inputLink}`);
+      const data = await res.json();
+      if (data.message === "Not enough credits") {
+        showModal();
+      }
+      setComments(data);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    } finally {
+      setLoading(false);
+      setInputLink("");
     }
-
-    setComments(data);
-    setLoading(false);
-    setInputLink("");
   };
   let userData;
-  let data;
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await fetch("/api/getUser");
 
-        if (res.status === 401) {
+        if (res.status === 401 || !res) {
           router.replace("/api/auth/signin");
-        } else if (!res.ok) {
         } else {
           userData = await res.json();
           const lastUpdated = new Date(userData.updatedAt);
@@ -81,7 +82,7 @@ const page = () => {
             if (updateRes.ok) {
               const updatedUser = await updateRes.json();
               setUser(updatedUser);
-            } else {
+            } else {  
               console.error(
                 "Failed to update user credits:",
                 updateRes.statusText
@@ -90,30 +91,6 @@ const page = () => {
           } else {
             setUser(userData);
           }
-          data = {
-            labels: ["Positive", "Negative"],
-            datasets: [
-              {
-                label: "Comments",
-                data: [
-                  (
-                    (comments.positiveComments.length /
-                      (comments.positiveComments.length +
-                        comments.negativeComments.length)) *
-                    100
-                  ).toFixed(2),
-                  (
-                    (comments.negativeComments.length /
-                      (comments.positiveComments.length +
-                        comments.negativeComments.length)) *
-                    100
-                  ).toFixed(2),
-                ],
-                borderColor: "rgba(255, 99, 132, 1)",
-                backgroundColor: "rgba(255, 99, 132, 0.2)",
-              },
-            ],
-          };
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -162,99 +139,66 @@ const page = () => {
             </h1>
           )}
         </form>
-        {comments && (
-          <div className=" flex  gap-x-4 p-2 ">
-            {comments.positiveComments.length > 1 && (
-              <div className=" w-[300px] p-2 rounded my-2 bg-green-700/70 flex flex-col gap-y-1">
-                <h1 className=" font-semibold">Positive Comments</h1>
-                {Array.isArray(comments.positiveComments) &&
-                  comments.positiveComments.length > 0 &&
-                  comments.positiveComments.map((comment: string, i) => {
-                    return (
-                      <span>
-                        {i + 1}
-                        {". "}
-                        {comment
-                          .replaceAll("&#39;", "'")
-                          .replaceAll("<br/>", "")}
-                      </span>
-                    );
-                  })}
-              </div>
-            )}
-            {comments.negativeComments.length > 1 && (
-              <div className="w-[300px] p-2 rounded my-2 bg-red-800/70 flex flex-col gap-y-1">
-                <h1 className=" font-semibold">Negative Comments</h1>
-                {Array.isArray(comments.negativeComments) &&
-                  comments.negativeComments.length > 1 &&
-                  comments.negativeComments.map((comment: string, i) => {
-                    return (
-                      <span>
-                        {i + 1}
-                        {". "}
-                        {comment
-                          .replaceAll("&#39;", "'")
-                          .replaceAll("<br/>", "")}
-                      </span>
-                    );
-                  })}
-              </div>
-            )}
-            {comments.mostAskedQuestion.length > 1 && (
+
+        <div className=" flex  gap-x-4 p-2 ">
+          {Array.isArray(comments.mostAskedQuestion) &&
+            comments.mostAskedQuestion.length > 0 && (
               <div className="w-[300px] p-2 rounded my-2 bg-orange-700/70 flex flex-col gap-y-1">
-                <h1 className=" font-semibold">
+                <h1 className="font-semibold">
                   Most Asked Question in Comments
                 </h1>
-                {Array.isArray(comments.mostAskedQuestion) &&
-                  comments.mostAskedQuestion.length > 0 &&
-                  comments.mostAskedQuestion.map((comment: string, i) => {
-                    return (
-                      <span>
-                        {i + 1}
-                        {". "}
-                        {comment
-                          .replaceAll("&#39;", "'")
-                          .replaceAll("<br/>", "")}
-                      </span>
-                    );
-                  })}
+                {comments.mostAskedQuestion.map((comment: string, i) => (
+                  <span key={i}>
+                    {i + 1}.{" "}
+                    {comment.replaceAll("&#39;", "'").replaceAll("<br/>", "")}
+                  </span>
+                ))}
               </div>
             )}
-            {comments.summary.length > 1 && (
-              <span className="w-[300px] p-2 rounded my-2 bg-neutral-700/70 flex flex-col gap-y-1">
-                <h1 className=" font-semibold">
-                  Summary with Sentiment Analysis{" "}
+          {typeof comments.summary === "string" &&
+            comments.summary.length > 1 && (
+              <div className="w-[300px] p-2 rounded my-2 bg-neutral-700/70 flex flex-col gap-y-1">
+                <h1 className="font-semibold">
+                  Summary with Sentiment Analysis
                 </h1>
-                {comments.summary &&
-                  comments.summary.replaceAll("*", "").replaceAll("&#39;", "'")}
-              </span>
+                <span>
+                  {comments.summary
+                    .replaceAll("*", "")
+                    .replaceAll("&#39;", "'")}
+                </span>
+              </div>
             )}
-          </div>
-        )}
-        <div>
-          {(comments.negativeComments.length > 1 ||
-            comments.positiveComments.length > 1) && (
-            <div className="w-[300px] p-2 rounded my-2 bg-neutral-700/70 flex flex-col gap-y-1">
-              <h1 className=" font-semibold">Ratio of Positive - Negative</h1>
-              <h1 className=" font-semibold text-green-400">
-                {(
-                  (comments.positiveComments.length /
-                    (comments.positiveComments.length +
-                      comments.negativeComments.length)) *
-                  100
-                ).toFixed(2)}
-              </h1>
-              <h1 className=" font-semibold text-red-400">
-                {(
-                  (comments.negativeComments.length /
-                    (comments.positiveComments.length +
-                      comments.negativeComments.length)) *
-                  100
-                ).toFixed(2)}
-              </h1>
+          {(comments.commentNumbers[0] > 1 ||
+            comments.commentNumbers[1] > 1) && (
+            <div className=" rounded my-2 flex flex-col gap-y-1">
+              <Chart
+                negativePercentage={Math.floor(
+                  (comments.commentNumbers[1] /
+                    (comments.commentNumbers[0] +
+                      comments.commentNumbers[1] +
+                      comments.commentNumbers[2])) *
+                    100
+                )}
+                positivePercentage={Math.floor(
+                  (comments.commentNumbers[0] /
+                    (comments.commentNumbers[0] +
+                      comments.commentNumbers[1] +
+                      comments.commentNumbers[2])) *
+                    100
+                )}
+                neutralPercentage={Math.floor(
+                  (comments.commentNumbers[2] /
+                    (comments.commentNumbers[0] +
+                      comments.commentNumbers[1] +
+                      comments.commentNumbers[2])) *
+                    100
+                )}
+              />
             </div>
           )}
         </div>
+
+        {!comments.summary && <h1>No analysis</h1>}
       </div>
     </div>
   );
