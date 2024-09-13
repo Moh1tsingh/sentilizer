@@ -16,6 +16,23 @@ export async function GET(req: NextRequest) {
     const videoID = urlObj.searchParams.get("v");
     if (!videoID) throw new Error("Invalid YouTube URL");
 
+    const videoRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoID}&key=${process.env.YOUTUBE_API_KEY}`
+    );
+    if (!videoRes.ok) {
+      throw new Error("Failed to fetch video details");
+    }
+    const videoData = await videoRes.json();
+    const videoInfo = videoData.items[0];
+
+    // Extracting required video details
+    const videoTitle = videoInfo.snippet.title;
+    const thumbnails = videoInfo.snippet.thumbnails;
+    const thumbnailUrl = thumbnails.maxres
+      ? thumbnails.maxres.url // Check if maxres is available
+      : thumbnails.high.url;
+    const likeCount = videoInfo.statistics.likeCount;
+
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoID}&key=${process.env.YOUTUBE_API_KEY}&maxResults=100`
     );
@@ -128,6 +145,9 @@ export async function GET(req: NextRequest) {
       });
     }
     return NextResponse.json({
+      videoTitle,
+      thumbnailUrl,
+      likeCount,
       commentNumbers,
       mostAskedQuestion,
       summary,

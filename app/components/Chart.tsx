@@ -31,7 +31,7 @@ export function Chart({
           Comparison of Positive, Negative and Neutral Comments
         </CardDescription>
       </CardHeader>
-      <CardContent className="h-80 w-full">
+      <CardContent className="h-80 w-full my-3 py-0">
         <ResponsiveContainer width={"100%"} height={"100%"}>
           <PieChart>
             <Pie

@@ -2,15 +2,19 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { isBefore, subDays } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { Loader2, ThumbsUpIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { Chart } from "../components/Chart";
+import Image from "next/image";
 const page = () => {
   const MAX_CREDIT_LIMIT = 2;
   const { status } = useSession();
-  const [comments, setComments] = useState({
+  const [ytData, setYtData] = useState({
+    videoTitle: "",
+    thumbnailUrl: "",
+    likeCount: 0,
     commentNumbers: [],
     mostAskedQuestion: [],
     summary: "",
@@ -52,9 +56,9 @@ const page = () => {
       if (data.message === "Not enough credits") {
         showModal();
       }
-      setComments(data);
+      setYtData(data);
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      console.error("Error fetching ytData:", error);
     } finally {
       setLoading(false);
       setInputLink("");
@@ -82,7 +86,7 @@ const page = () => {
             if (updateRes.ok) {
               const updatedUser = await updateRes.json();
               setUser(updatedUser);
-            } else {  
+            } else {
               console.error(
                 "Failed to update user credits:",
                 updateRes.statusText
@@ -97,7 +101,7 @@ const page = () => {
       }
     };
     fetchUser();
-  }, [router, comments.summary]);
+  }, [router, ytData.summary]);
 
   return (
     <div className=" w-full min-h-screen bg-neutral-900 text-white flex  justify-center items-center">
@@ -139,58 +143,73 @@ const page = () => {
             </h1>
           )}
         </form>
+        {ytData.thumbnailUrl && (
+          <div className=" w-3/4 my-5 flex flex-col gap-y-1 items-start">
+            <Image
+              src={ytData.thumbnailUrl}
+              alt={ytData.videoTitle}
+              width={800}
+              height={350}
+              className="w-full rounded-lg"
+            />
+            <div className=" w-full flex justify-between">
+              <h1 className=" font-medium text-xl">{ytData.videoTitle}</h1>
+              <p className="flex max-h-7 gap-x-1 mt-1 items-center justify-center font-medium  bg-neutral-700 text-white/80 py-1 px-3 rounded-xl">
+                <ThumbsUpIcon className=" size-4" />
+                {ytData.likeCount}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className=" flex  gap-x-4 p-2 ">
-          {Array.isArray(comments.mostAskedQuestion) &&
-            comments.mostAskedQuestion.length > 0 && (
-              <div className="w-[300px] p-2 rounded my-2 bg-orange-700/70 flex flex-col gap-y-1">
-                <h1 className="font-semibold">
-                  Most Asked Question in Comments
-                </h1>
-                {comments.mostAskedQuestion.map((comment: string, i) => (
-                  <span key={i}>
+          {Array.isArray(ytData.mostAskedQuestion) &&
+            ytData.mostAskedQuestion.length > 0 && (
+              <div className="w-[300px] max-h-[425px] overflow-auto p-3 rounded my-2 bg-neutral-800 flex flex-col gap-y-1 hide-scrollbar">
+                <h1 className="font-semibold">Most Asked Question in Comments</h1>
+                {ytData.mostAskedQuestion.map((comment: string, i) => (
+                  <span
+                    key={i}
+                    className=" text-sm border-b border-neutral-600 py-1"
+                  >
                     {i + 1}.{" "}
                     {comment.replaceAll("&#39;", "'").replaceAll("<br/>", "")}
                   </span>
                 ))}
               </div>
             )}
-          {typeof comments.summary === "string" &&
-            comments.summary.length > 1 && (
-              <div className="w-[300px] p-2 rounded my-2 bg-neutral-700/70 flex flex-col gap-y-1">
-                <h1 className="font-semibold">
-                  Summary with Sentiment Analysis
-                </h1>
-                <span>
-                  {comments.summary
-                    .replaceAll("*", "")
-                    .replaceAll("&#39;", "'")}
-                </span>
-              </div>
-            )}
-          {(comments.commentNumbers[0] > 1 ||
-            comments.commentNumbers[1] > 1) && (
+          {typeof ytData.summary === "string" && ytData.summary.length > 1 && (
+            <div className="w-[300px] max-h-[425px] overflow-auto p-3 rounded my-2 bg-neutral-800 flex flex-col gap-y-1 hide-scrollbar">
+              <h1 className="font-semibold">Summary with Sentiment Analysis</h1>
+              <span className="text-sm">
+                {ytData.summary.replaceAll("*", "").replaceAll("&#39;", "'")}
+              </span>
+            </div>
+          )}
+          {(ytData.commentNumbers[0] > 1 ||
+            ytData.commentNumbers[1] > 1 ||
+            ytData.commentNumbers[2] > 1) && (
             <div className=" rounded my-2 flex flex-col gap-y-1">
               <Chart
                 negativePercentage={Math.floor(
-                  (comments.commentNumbers[1] /
-                    (comments.commentNumbers[0] +
-                      comments.commentNumbers[1] +
-                      comments.commentNumbers[2])) *
+                  (ytData.commentNumbers[1] /
+                    (ytData.commentNumbers[0] +
+                      ytData.commentNumbers[1] +
+                      ytData.commentNumbers[2])) *
                     100
                 )}
                 positivePercentage={Math.floor(
-                  (comments.commentNumbers[0] /
-                    (comments.commentNumbers[0] +
-                      comments.commentNumbers[1] +
-                      comments.commentNumbers[2])) *
+                  (ytData.commentNumbers[0] /
+                    (ytData.commentNumbers[0] +
+                      ytData.commentNumbers[1] +
+                      ytData.commentNumbers[2])) *
                     100
                 )}
                 neutralPercentage={Math.floor(
-                  (comments.commentNumbers[2] /
-                    (comments.commentNumbers[0] +
-                      comments.commentNumbers[1] +
-                      comments.commentNumbers[2])) *
+                  (ytData.commentNumbers[2] /
+                    (ytData.commentNumbers[0] +
+                      ytData.commentNumbers[1] +
+                      ytData.commentNumbers[2])) *
                     100
                 )}
               />
@@ -198,7 +217,7 @@ const page = () => {
           )}
         </div>
 
-        {!comments.summary && <h1>No analysis</h1>}
+        {!ytData.summary && <h1>No analysis</h1>}
       </div>
     </div>
   );
