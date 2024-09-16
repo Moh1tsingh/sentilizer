@@ -5,21 +5,20 @@ import React from "react";
 const Appbar = () => {
   const session = useSession();
   return (
-    <div className=" w-full flex justify-between absolute  items-center px-16 pt-6 text-white">
-      <div
-        className=" text-2xl font-bold tracking-tight cursor-pointer"
+    <div className=" absolute z-10 w-full flex justify-between  items-center max-sm:px-2 sm:px-16 sm:pt-6 text-white">
+      <span
+        className={` text-4xl font-bold tracking-tight  max-sm:text-2xl cursor-pointer bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 `}
         onClick={() => window.location.replace("/")}
       >
         Sentilizer
-      </div>
+      </span>
       <div className=" flex gap-x-5">
         {!session.data?.user ? (
           <></>
         ) : (
           !window.location.href.includes("/dashboard") && (
             <Button
-              className=" "
-              variant={"secondary"}
+              className="  max-sm:mt-1 bg-neutral-100 text-black hover:bg-neutral-300"
               onClick={() => window.location.replace("/dashboard")}
             >
               Dashboard
@@ -28,18 +27,19 @@ const Appbar = () => {
         )}
         {!session.data?.user ? (
           <Button
-            className=" bg-green-500 hover:bg-green-600"
+            className=" max-sm:hidden "
             onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
           >
             Login
           </Button>
         ) : (
-          <Button
-            className=" bg-green-500 hover:bg-green-600"
-            onClick={() => signOut()}
-          >
-            Logout
-          </Button>
+          <>
+            {window.location.href.includes("/dashboard") && (
+              <Button className=" bg-neutral-800" onClick={() => signOut()}>
+                Logout
+              </Button>
+            )}
+          </>
         )}
       </div>
     </div>

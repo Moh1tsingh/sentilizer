@@ -16,119 +16,103 @@ export async function GET(req: NextRequest) {
     const videoID = urlObj.searchParams.get("v");
     if (!videoID) throw new Error("Invalid YouTube URL");
 
-    const videoRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoID}&key=${process.env.YOUTUBE_API_KEY}`
-    );
-    if (!videoRes.ok) {
-      throw new Error("Failed to fetch video details");
-    }
-    const videoData = await videoRes.json();
-    const videoInfo = videoData.items[0];
+    const [videoData, commentsData] = await Promise.all([
+      fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoID}&key=${process.env.YOUTUBE_API_KEY}`
+      ).then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch video details");
+        return res.json();
+      }),
+      fetch(
+        `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoID}&key=${process.env.YOUTUBE_API_KEY}&maxResults=100`
+      ).then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch comments");
+        return res.json();
+      }),
+    ]);
 
-    // Extracting required video details
+    const videoInfo = videoData.items[0];
     const videoTitle = videoInfo.snippet.title;
     const thumbnails = videoInfo.snippet.thumbnails;
     const thumbnailUrl = thumbnails.maxres
-      ? thumbnails.maxres.url // Check if maxres is available
+      ? thumbnails.maxres.url
       : thumbnails.high.url;
     const likeCount = videoInfo.statistics.likeCount;
 
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoID}&key=${process.env.YOUTUBE_API_KEY}&maxResults=100`
-    );
-    if (!res.ok) {
-      throw new Error("Failed to fetch comments");
-    }
-    const data = await res.json();
-    let comments: string[] = [];
-    comments = [
-      ...comments,
-      ...data.items.map(
-        (item: any) => item.snippet.topLevelComment.snippet.textDisplay
-      ),
-    ];
-    //Gemini api call
-
-    let text0 =
-      "i am providing you comments of a youtube video you have to tell me how many are positive and how many are negative and neutral. Your response should only contain three numbers nothing other than that example - '[20,50,30]'. i will directly use 'res.split(',')' to get the tree values. (The comments are separated by ' | ') => " +
-      comments.join(" | ");
-
-    const requestBody0 = {
-      contents: [
-        {
-          parts: [{ text: text0 }],
-        },
-      ],
-    };
-
-    let text3 =
-      "I am providing you some comments of a particular youtube video, I want you to give me all the most asked questions from them, you can skip the ones which have too many emojis or some unreadable texts like codes.Remember the result you will give should only contain questions nothing other than that. Give the result as ' | ' separated comments which i can put into res.split(' | ') and get the array of comments. Here are the comments (which are separated by ' | ') " +
-      comments.join(" | ");
-
-    const requestBody3 = {
-      contents: [
-        {
-          parts: [{ text: text3 }],
-        },
-      ],
-    };
-
-    let text4 =
-      "I am providing you some comments of a particular youtube video, I want you to make a summary (around 100-150 words) based on your sentiment analysis of those comments. Here are the comments (which are separated by ' | ') = " +
-      comments.join(" | ");
-
-    const requestBody4 = {
-      contents: [
-        {
-          parts: [{ text: text4 }],
-        },
-      ],
-    };
-
-    const response0 = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody0),
-      }
+    const comments = commentsData.items.map(
+      (item: any) => item.snippet.topLevelComment.snippet.textDisplay
     );
 
-    const response3 = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody3),
-      }
-    );
+    const commentString = comments.join(" | ");
 
-    const response4 = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody4),
-      }
-    );
-    const finalResponse0 = await response0.json();
-    const finalResponse3 = await response3.json();
-    const finalResponse4 = await response4.json();
+    const [sentimentResponse, questionsResponse, summaryResponse] =
+      await Promise.all([
+        fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: `i am providing you comments of a youtube video you have to tell me how many are positive and how many are negative and neutral. Your response should only contain three numbers nothing other than that example - '[20,50,30]'. i will directly use 'res.split(',')' to get the tree values. (The comments are separated by ' | ') => ${commentString}`,
+                    },
+                  ],
+                },
+              ],
+            }),
+          }
+        ).then((res) => res.json()),
+        fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: `I am providing you some comments of a particular youtube video, I want you to give me all the asked questions from them, you can skip the ones which have too many emojis or some unreadable texts like codes.Remember the result you will give should only contain questions nothing other than that. Give the result as ' | ' separated comments which i can put into res.split(' | ') and get the array of comments. Here are the comments (which are separated by ' | ') ${commentString}`,
+                    },
+                  ],
+                },
+              ],
+            }),
+          }
+        ).then((res) => res.json()),
+        fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: `I am providing you some comments of a particular youtube video, I want you to make a summary (around 100-150 words) based on your sentiment analysis of those comments. Here are the comments (which are separated by ' | ') = ${commentString}`,
+                    },
+                  ],
+                },
+              ],
+            }),
+          }
+        ).then((res) => res.json()),
+      ]);
+
     const commentNumbers =
-      finalResponse0.candidates?.[0]?.content?.parts?.[0]?.text
+      sentimentResponse.candidates?.[0]?.content?.parts?.[0]?.text
         .replace(/\[|\]/g, "")
         .split(",")
-        .map(Number) || 0;
+        .map(Number) || [0, 0, 0];
     const mostAskedQuestion =
-      finalResponse3.candidates?.[0]?.content?.parts?.[0]?.text.split(" | ") ||
-      "No most asked questions found";
-    const summary = finalResponse4.candidates?.[0]?.content?.parts?.[0]?.text;
+      questionsResponse.candidates?.[0]?.content?.parts?.[0]?.text.split(
+        " | "
+      ) || ["No most asked questions found"];
+    const summary = summaryResponse.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (
       commentNumbers[0] > 1 ||
@@ -136,14 +120,11 @@ export async function GET(req: NextRequest) {
       commentNumbers[2] > 1
     ) {
       await prisma.user.update({
-        where: {
-          id: user?.id,
-        },
-        data: {
-          credits: user?.credits! - 1,
-        },
+        where: { id: user?.id },
+        data: { credits: user?.credits! - 1 },
       });
     }
+
     return NextResponse.json({
       videoTitle,
       thumbnailUrl,
