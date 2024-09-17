@@ -1,7 +1,7 @@
 import { getUser } from "@/app/actions";
 import { NextResponse } from "next/server";
 import { unstable_noStore as noStore } from "next/cache";
-import prisma from "@/app/utils/db";
+import {prisma} from "@/app/utils/db";
 
 export async function GET() {
   noStore()
