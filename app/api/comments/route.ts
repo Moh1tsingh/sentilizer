@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/app/actions";
 import { prisma } from "@/app/utils/db";
+import { unstable_noStore as noStore } from "next/cache";
 
 export async function GET(req: NextRequest) {
+  noStore();
   const user = await getUser();
   if (user?.credits === 0)
     return NextResponse.json(

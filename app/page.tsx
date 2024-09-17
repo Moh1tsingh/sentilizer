@@ -88,7 +88,7 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent>
                   Spot emerging trends and topics in your comments to stay ahead
-                  of your audience's interests and address their concerns
+                  of your audience&apos;s interests and address their concerns
                   proactively.
                 </CardContent>
               </Card>
@@ -149,8 +149,8 @@ export default function LandingPage() {
                 <CardContent className="text-center">
                   <h3 className="text-xl font-semibold mb-2">AI Analysis</h3>
                   <p>
-                    Senitlizer's AI processes the comments, analyzing sentiment
-                    and identifying key questions and trends.
+                    Senitlizer&apos;s AI processes the comments, analyzing
+                    sentiment and identifying key questions and trends.
                   </p>
                 </CardContent>
               </Card>

@@ -11,7 +11,7 @@ import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const page = () => {
+const Page = () => {
   const MAX_CREDIT_LIMIT = 2;
   const { status } = useSession();
   const [ytData, setYtData] = useState({
@@ -85,8 +85,9 @@ const page = () => {
       setInputLink("");
     }
   };
-  let userData;
+  
   useEffect(() => {
+    let userData;
     const fetchUser = async () => {
       try {
         const res = await fetch("/api/getUser");
@@ -207,7 +208,7 @@ const page = () => {
                   >
                     {i + 1}.{" "}
                     {comment
-                      .replaceAll("&#39;", "'")
+                      .replaceAll("&#39;", "&apos;")
                       .replaceAll("<br/>", "")
                       .replaceAll("&quot;", '"')}
                   </span>
@@ -218,7 +219,9 @@ const page = () => {
             <div className="w-[300px] max-h-[435px] overflow-auto p-3 rounded-md my-2 bg-neutral-800 flex flex-col gap-y-1 hide-scrollbar">
               <h1 className="font-semibold">Summary with Sentiment Analysis</h1>
               <span className="text-sm">
-                {ytData.summary.replaceAll("*", "").replaceAll("&#39;", "'")}
+                {ytData.summary
+                  .replaceAll("*", "")
+                  .replaceAll("&#39;", "&apos;")}
               </span>
             </div>
           )}
@@ -258,4 +261,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

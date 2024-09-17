@@ -1,6 +1,8 @@
 import { getUser } from "@/app/actions";
 import { NextResponse } from "next/server";
+import { unstable_noStore as noStore } from "next/cache";
 export async function GET() {
+  noStore()
   try {
     const user = await getUser();
     if (!user) {
