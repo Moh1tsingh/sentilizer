@@ -206,10 +206,10 @@ const Page = () => {
           </div>
         )}
 
-        <div className=" flex  gap-x-4 p-2 max-sm:flex-col text-white/85 ">
+        <div className=" flex  gap-x-4 p-2 max-sm:flex-col max-sm:items-center text-white/85 ">
           {Array.isArray(ytData.mostAskedQuestion) &&
             ytData.mostAskedQuestion.length > 0 && (
-              <div className="w-[300px] max-h-[435px] overflow-auto p-3 rounded my-2 bg-neutral-800 flex flex-col gap-y-1 hide-scrollbar">
+              <div className="w-[300px] max-sm:w-[320px] max-h-[435px] overflow-auto p-3 rounded my-2 bg-neutral-800 flex flex-col gap-y-1 hide-scrollbar">
                 <h1 className="font-semibold">
                   Most Asked Question in Comments
                 </h1>
@@ -228,7 +228,7 @@ const Page = () => {
               </div>
             )}
           {typeof ytData.summary === "string" && ytData.summary.length > 1 && (
-            <div className="w-[300px] max-h-[435px] overflow-auto p-3 rounded-md my-2 bg-neutral-800 flex flex-col gap-y-1 hide-scrollbar">
+            <div className="w-[300px] max-sm:w-[320px] max-h-[435px] overflow-auto p-3 rounded-md my-2 bg-neutral-800 flex flex-col gap-y-1 hide-scrollbar">
               <h1 className="font-semibold">Summary with Sentiment Analysis</h1>
               <span className="text-sm">
                 {ytData.summary
