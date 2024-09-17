@@ -126,16 +126,19 @@ const Page = () => {
   }, [router, ytData.summary]);
 
   return (
-    <div className=" w-full min-h-screen bg-neutral-900 bg-grid-white/[0.05]  text-white flex  justify-center items-center">
+    <div className=" w-full min-h-screen bg-neutral-900 bg-grid-white/[0.05]  text-white flex overflow-hidden  justify-center items-center">
       <div className="absolute  h-full pointer-events-none inset-0 flex items-center justify-center   [mask-image:radial-gradient(ellipse_at_center,transparent_30%,black)]"></div>
       <div className=" max-w-7xl  items-center justify-center flex flex-col pt-[100px] min-h-screen  gap-x-4 ">
         {!ytData.summary && (
-          <h1 className=" absolute top-60 text-balance  text-5xl font-semibold tracking-tight">
+          <h1 className=" absolute top-60 max-sm:top-[8rem] max-sm:w-full max-sm:text-center max-sm:text-3xl text-balance  text-5xl font-semibold tracking-tight text-white/90">
             Paste video url to start the analysis
           </h1>
         )}
         {!ytData.thumbnailUrl ? (
-          <form onSubmit={handleSubmit} className="space-y-2 w-[500px]">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-2 w-[500px] max-sm:w-full max-sm:-mt-20"
+          >
             <Input
               type="text"
               placeholder="Paste YouTube link here"
@@ -166,6 +169,13 @@ const Page = () => {
                 Remaining credits: {user?.credits}
               </h1>
             )}
+            <div className="w-[300px] sm:w-full text-wrap bg-neutral-700/60 p-2 rounded-lg text-neutral-300">
+              <p className="w-full text-xs">
+                Disclaimer: Currently Sentilizer only uses 100 comments for
+                sentiment analysis. <br /> Sample URL -
+                https://www.youtube.com/watch?v=dQw4w9WgXcQ
+              </p>
+            </div>
           </form>
         ) : (
           <Button
@@ -176,7 +186,7 @@ const Page = () => {
           </Button>
         )}
         {ytData.thumbnailUrl && (
-          <div className=" w-3/4 my-5 flex flex-col gap-y-1 items-start">
+          <div className=" w-3/4 max-sm:w-11/12 my-5 flex flex-col gap-y-1 items-start">
             <Image
               src={ytData.thumbnailUrl}
               alt={ytData.videoTitle}
@@ -185,7 +195,9 @@ const Page = () => {
               className="w-full rounded-lg"
             />
             <div className=" w-full flex justify-between">
-              <h1 className=" font-medium text-xl">{ytData.videoTitle}</h1>
+              <h1 className=" font-medium text-xl max-sm:text-sm">
+                {ytData.videoTitle}
+              </h1>
               <p className="flex max-h-7 gap-x-1 mt-1 items-center justify-center font-medium  bg-neutral-700 text-white/80 py-1 px-3 rounded-xl">
                 <ThumbsUpIcon className=" size-4" />
                 {ytData.likeCount}
@@ -194,7 +206,7 @@ const Page = () => {
           </div>
         )}
 
-        <div className=" flex  gap-x-4 p-2 ">
+        <div className=" flex  gap-x-4 p-2 max-sm:flex-col text-white/85 ">
           {Array.isArray(ytData.mostAskedQuestion) &&
             ytData.mostAskedQuestion.length > 0 && (
               <div className="w-[300px] max-h-[435px] overflow-auto p-3 rounded my-2 bg-neutral-800 flex flex-col gap-y-1 hide-scrollbar">
@@ -204,7 +216,7 @@ const Page = () => {
                 {ytData.mostAskedQuestion.map((comment: string, i) => (
                   <span
                     key={i}
-                    className=" text-sm border-b border-neutral-600 py-1"
+                    className=" text-sm  border-b border-neutral-600 py-1"
                   >
                     {i + 1}.{" "}
                     {comment

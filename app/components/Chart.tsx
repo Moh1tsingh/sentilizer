@@ -28,7 +28,7 @@ export function Chart({
       <CardHeader>
         <CardTitle className=" text-white">Sentiment Analysis</CardTitle>
         <CardDescription className=" text-zinc-500">
-          Comparison of Positive, Negative and Neutral Comments
+          Comparison of Positive(Green), Negative(Red), Neutral(Blue) Comments
         </CardDescription>
       </CardHeader>
       <CardContent className="h-80 w-full my-3 py-0">
@@ -40,7 +40,7 @@ export function Chart({
               nameKey="name"
               cx="50%"
               cy="50%"
-              outerRadius={130}
+              outerRadius={window.matchMedia("(max-width: 768px)").matches ? 100 : 120}
               label
               stroke="none"
             >

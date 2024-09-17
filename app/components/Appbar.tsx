@@ -5,7 +5,7 @@ import React from "react";
 const Appbar = () => {
   const session = useSession();
   return (
-    <div className=" absolute z-10 w-full flex justify-between  items-center max-sm:px-2 sm:px-16 sm:pt-6 text-white">
+    <div className=" absolute z-10 w-full flex justify-between mt-2  items-center max-sm:px-2 sm:px-16 sm:pt-6 text-white">
       <span
         className={` text-4xl font-bold tracking-tight  max-sm:text-2xl cursor-pointer bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 `}
         onClick={() => window.location.replace("/")}

@@ -186,10 +186,10 @@ export default function LandingPage() {
               </p>
               <Button
                 size="lg"
-                className="px-2 bg-neutral-100 text-black hover:bg-neutral-300"
+                className="px-2 bg-neutral-100 text-black hover:bg-neutral-300 max-sm:w-full"
                 onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
               >
-                Sign Up and Get Your Free Senitlizer Credits
+                Sign Up and Get Your Free Credits
               </Button>
             </div>
           </div>
