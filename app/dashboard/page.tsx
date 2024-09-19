@@ -58,7 +58,6 @@ const Page = () => {
       return;
     }
     if (inputLink.length == 0) {
-    
       toast.error("Please enter valid url.", {
         position: "top-right",
         autoClose: 5000,
@@ -69,14 +68,14 @@ const Page = () => {
         progress: undefined,
       });
       return;
-    };
+    }
     setLoading(true);
     try {
       const res = await fetch(`/api/comments/?url=${inputLink}`);
       const data = await res.json();
       if (data.message === "Not enough credits") {
         showModal();
-      }else if (data.message === "Invalid Request") {
+      } else if (data.message === "Invalid Request") {
         toast.error("Please enter valid url.", {
           position: "top-right",
           autoClose: 5000,
@@ -95,7 +94,7 @@ const Page = () => {
       setInputLink("");
     }
   };
-  
+
   useEffect(() => {
     let userData;
     const fetchUser = async () => {
@@ -139,7 +138,7 @@ const Page = () => {
     <div className=" w-full min-h-screen bg-neutral-900 bg-grid-white/[0.05]  text-white flex overflow-hidden  justify-center items-center">
       <div className="absolute  h-full pointer-events-none inset-0 flex items-center justify-center   [mask-image:radial-gradient(ellipse_at_center,transparent_30%,black)]"></div>
       <div className=" max-w-7xl  items-center justify-center flex flex-col pt-[100px] min-h-screen  gap-x-4 ">
-        {!ytData.summary && (
+        {!ytData.summary && !ytData.mostAskedQuestion && (
           <h1 className=" absolute top-60 max-sm:top-[8rem] max-sm:w-full max-sm:text-center max-sm:text-3xl text-balance  text-5xl font-semibold tracking-tight text-white/90">
             Paste video url to start the analysis
           </h1>
@@ -280,7 +279,6 @@ const Page = () => {
         </div>
       </div>
       <ToastContainer />
-      
     </div>
   );
 };
