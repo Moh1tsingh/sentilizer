@@ -280,12 +280,7 @@ const Page = () => {
         </div>
       </div>
       <ToastContainer />
-      <div className="absolute z-10 left-1/2 bottom-1 -translate-x-1/2 max-sm:text-xs max-sm:text-nowrap max-sm:bottom-3  ">
-        Developed by{" "}
-        <a className="font-medium text-cyan-200" href="https://www.github.com/moh1tsingh">
-          Mohitsingh Thakur.
-        </a>
-      </div>
+      
     </div>
   );
 };
