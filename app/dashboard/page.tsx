@@ -250,7 +250,7 @@ const Page = () => {
             (ytData.commentNumbers[0] > 1 ||
               ytData.commentNumbers[1] > 1 ||
               ytData.commentNumbers[2] > 1) && (
-              <div className=" rounded my-2 flex flex-col gap-y-1">
+              <div className=" rounded my-2 flex flex-col gap-y-1 mb-3">
                 <Chart
                   negativePercentage={Math.floor(
                     (ytData.commentNumbers[1] /
