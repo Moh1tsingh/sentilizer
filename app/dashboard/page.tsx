@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { isBefore, subDays } from "date-fns";
-import { Loader2, ThumbsUpIcon } from "lucide-react";
+import { Github, GithubIcon, Loader2, ThumbsUpIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -76,6 +76,16 @@ const Page = () => {
       const data = await res.json();
       if (data.message === "Not enough credits") {
         showModal();
+      }else if (data.message === "Invalid Request") {
+        toast.error("Please enter valid url.", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       }
       setYtData(data);
     } catch (error) {
@@ -172,8 +182,8 @@ const Page = () => {
             <div className="w-[300px] sm:w-full text-wrap bg-neutral-700/60 p-2 rounded-lg text-neutral-300">
               <p className="w-full text-xs">
                 Disclaimer: Currently Sentilizer only uses 100 comments for
-                sentiment analysis. <br /> Sample URL -
-                https://www.youtube.com/watch?v=dQw4w9WgXcQ
+                sentiment analysis. <br /> Sentilizer only works on Youtube
+                videos and shorts.
               </p>
             </div>
           </form>
@@ -237,38 +247,45 @@ const Page = () => {
               </span>
             </div>
           )}
-          {(ytData.commentNumbers[0] > 1 ||
-            ytData.commentNumbers[1] > 1 ||
-            ytData.commentNumbers[2] > 1) && (
-            <div className=" rounded my-2 flex flex-col gap-y-1">
-              <Chart
-                negativePercentage={Math.floor(
-                  (ytData.commentNumbers[1] /
-                    (ytData.commentNumbers[0] +
-                      ytData.commentNumbers[1] +
-                      ytData.commentNumbers[2])) *
-                    100
-                )}
-                positivePercentage={Math.floor(
-                  (ytData.commentNumbers[0] /
-                    (ytData.commentNumbers[0] +
-                      ytData.commentNumbers[1] +
-                      ytData.commentNumbers[2])) *
-                    100
-                )}
-                neutralPercentage={Math.floor(
-                  (ytData.commentNumbers[2] /
-                    (ytData.commentNumbers[0] +
-                      ytData.commentNumbers[1] +
-                      ytData.commentNumbers[2])) *
-                    100
-                )}
-              />
-            </div>
-          )}
+          {ytData.commentNumbers &&
+            (ytData.commentNumbers[0] > 1 ||
+              ytData.commentNumbers[1] > 1 ||
+              ytData.commentNumbers[2] > 1) && (
+              <div className=" rounded my-2 flex flex-col gap-y-1">
+                <Chart
+                  negativePercentage={Math.floor(
+                    (ytData.commentNumbers[1] /
+                      (ytData.commentNumbers[0] +
+                        ytData.commentNumbers[1] +
+                        ytData.commentNumbers[2])) *
+                      100
+                  )}
+                  positivePercentage={Math.floor(
+                    (ytData.commentNumbers[0] /
+                      (ytData.commentNumbers[0] +
+                        ytData.commentNumbers[1] +
+                        ytData.commentNumbers[2])) *
+                      100
+                  )}
+                  neutralPercentage={Math.floor(
+                    (ytData.commentNumbers[2] /
+                      (ytData.commentNumbers[0] +
+                        ytData.commentNumbers[1] +
+                        ytData.commentNumbers[2])) *
+                      100
+                  )}
+                />
+              </div>
+            )}
         </div>
       </div>
       <ToastContainer />
+      <div className="absolute z-10 left-1/2 bottom-1 -translate-x-1/2 max-sm:text-xs max-sm:text-nowrap max-sm:bottom-3  ">
+        Developed by{" "}
+        <a className="font-medium text-cyan-200" href="https://www.github.com/moh1tsingh">
+          Mohitsingh Thakur.
+        </a>
+      </div>
     </div>
   );
 };

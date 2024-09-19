@@ -7,7 +7,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 export default function LandingPage() {
   const session = useSession();
   return (
-    <div className="flex flex-col min-h-screen bg-neutral-900 text-neutral-100">
+    <div className="flex flex-col min-h-screen relative bg-neutral-900 text-neutral-100">
       <main className="flex-1">
         <section className="w-full mt-16 py-12 md:py-24 lg:py-32 xl:py-48">
           <div className="container px-4 md:px-6">
@@ -195,6 +195,15 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
+      <div className="absolute left-1/2 bottom-1 -translate-x-1/2 max-sm:text-xs max-sm:text-nowrap max-sm:bottom-3  ">
+        Developed by{" "}
+        <a
+          className="font-medium text-cyan-200"
+          href="https://www.github.com/moh1tsingh"
+        >
+          Mohitsingh Thakur.
+        </a>
+      </div>
     </div>
   );
 }
